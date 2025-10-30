@@ -3,10 +3,14 @@
     require_once(get_stylesheet_directory() . '/inc/portfolio-cpt.php');
     new PortfolioManager();
 
+
+    function broken_fucntion(){
+        echo "hello";
+    }
+
     /**
      * Child Theme Enqueue
      */
-
     function child_theme_enqueue_styles(){
         //Enqueue the parent style
         wp_enqueue_style('parent-style', get_template_directory_uri() . '/style.css');
@@ -225,14 +229,31 @@
         return $classes;
     }
 
+    //Enforce strong passwords
+    function enforce_strong_passwords($username, $password, $errors){
+        
+        if(strlen($password) < 12){
+            $errors->add('weak_password', 'Password must be at least 12 characters');
+        }
 
-    // ** This was a test for debugging purposes **
-    // ** Helped me figure out that the twentytwenty-four theme does not have a header.php file.
+        if(!preg_match('/[A-Z]/', $password)){
+            $errors->add('weak_password', 'Password must contain at least one uppercase letter');
+        }
 
-    // add_filter('body_class', 'canary_test_body_class');
-    // function canary_test_body_class($classes) {
-    //     $classes[] = 'canary-it-works';
-    //     return $classes;
-    // }
+        if(!preg_match('/[a-z]/', $password)){
+            $errors->add('weak_password', 'Password must contain at least one lowercase letter');
+        }
+
+        if(!preg_match('/[0-9]/', $password)){
+            $errors->add('weak_password', 'Password must contain at least one number');
+        }
+
+        if(!preg_match('/[^a-zA-Z0-9]/', $password)){
+            $errors->add('weak_password', 'Password must contain at least one special character');
+        }
+
+    }
+    add_action('user_profile_update_errors', 'enforce_strong_passwords', 0, 3);
+
 
 ?>
