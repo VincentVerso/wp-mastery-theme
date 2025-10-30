@@ -25,16 +25,16 @@ a {
 }
 
 /* Custom Product Card Styling */
-.custom-product-card{
+.custom-product-card {
     background: #fff;
     border-radius: 12px;
     padding: 20px;
-    transition: transform 0.30.3ss ease;
-    box-shadow: 00 22pxpx 1212pxpx rgbargba(0,0,0,0.08);
-}z
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08); 
+}
 
-.custom-product-card:hover{
-    transform: translateYtranslateY(-8-8pxpx);
+.custom-product-card:hover {
+    transform: translateY(-8px); 
     box-shadow: 0 8px 24px rgba(0,0,0,0.15);
 }
 
