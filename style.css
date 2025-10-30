@@ -8,15 +8,15 @@ Author: Vincent Verso
 
 :root {
     /* Base Site Colors */
-    --wp--preset--color--background: #F8F9FA;  /* Changes the main site background color */
-    --wp--preset--color--foreground: #212529;  /* Changes the main body text color */
+    --wp--preset--color--background: #F8F9FA;  /* Very light gray for the main background */
+    --wp--preset--color--foreground: #212529;  /* Dark charcoal for main body text */
 
     /* Palette Colors */
-    --wp--preset--color--base: #FFFFFF;        /* Often used for content backgrounds */
-    --wp--preset--color--contrast: #000000;     /* Often used for text on light backgrounds */
-    --wp--preset--color--primary: #007bff;      /* Primary accent color for buttons, links, etc. */
-    --wp--preset--color--secondary: #6c757d;    /* Secondary accent color */
-    --wp--preset--color--tertiary: #ffc107;     /* Tertiary accent color */
+    --wp--preset--color--base: #FFFFFF;        /* White for content backgrounds */
+    --wp--preset--color--contrast: #000000;     /* Pure black for strong text */
+    --wp--preset--color--primary: #005A9C;      /* Professional blue for buttons and links */
+    --wp--preset--color--secondary: #6c757d;    /* Muted gray for secondary text */
+    --wp--preset--color--tertiary: #FFC107;     /* A warm gold for accents or highlights */
 }
 
 /* Example: Specific override for links if needed */
