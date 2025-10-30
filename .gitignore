@@ -1,0 +1,28 @@
+# WordPress specific
+wp-config.php
+wp-content/uploads/
+wp-content/cache/
+wp-content/backups/
+# IDE files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+# Node modules (if using npm)
+node_modules/
+package-lock.json
+# Compiled assets
+*.map
+*.min.css
+*.min.js
+# Environment files
+.env
+.env.local
+# Log files
+*.log
+error_log
+debug.log
