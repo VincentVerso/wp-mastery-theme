@@ -420,5 +420,32 @@
     }
     add_action('wp_enqueue_scripts', 'move_scripts_to_footer');
 
+    function conditional_script_loading(){
 
+        if(is_page('contact')){
+            wp_enqueue_script(
+                'contact-form',
+                get_stylesheet_directory_uri() . '/js/contact-form.js',
+                array('jquery'),
+                '1.0.0',
+                true
+            );
+        }
+
+        //Load slider script only
+        if(is_front_page()){
+            wp_enqueue_script(
+                'slider',
+                get_stylesheet_directory_uri() . '/js/slider.js',
+                array(''),
+                '1.0.0',
+                true
+            );
+        }
+
+        if(is_admin()){
+            return;
+        }
+    }
+    add_action('wp_enqueue_scripts', 'conditional_script_loading');
 ?>
