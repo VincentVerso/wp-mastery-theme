@@ -347,4 +347,28 @@
     }
     add_action('upgrader_process_complete', 'trigger_backup_before_update', 10, 2);
 
+    /**
+     * Set JPEG compression quality
+     */
+    add_filter('jpeg_quality', function () {
+        return 85;
+    });
+
+    /**
+     * Disable WordPress from generating unussed image sizes
+     */
+    add_filter('intermediate_image_sizes_advanced', function($sizes){
+        unset($sizes['medium_larger']);
+        unset($sizes['1536X1536']);
+        unset($sizes['2048X2048']);
+        return $sizes;
+    });
+
+    /**
+     * Add custom image sizes
+     */
+    add_theme_support('post-thumbnail');
+    add_image_size('portfolio-thumb', 600, 400, true);
+    add_image_size('blog-featured', 1200, 600, true);
+
 ?>
