@@ -25,4 +25,4 @@ jobs:
         username: ${{ secrets.FTP_USERNAME }}
         password: ${{ secrets.FTP_PASSWORD }}
         local-dir: ./
-        server-dir: /wp-content/themes/your-theme/
+        server-dir: /wp-content/themes/astra-child/
