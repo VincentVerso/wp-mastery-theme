@@ -388,64 +388,203 @@
     /**
      * JavaScript defered loading.
      */
-    function defer_scripts($tag, $handle, $src){
-        //Dont defer jQuery or scripts taht depend on jQuery
-        $defer_excludes = array('jquery', 'jquery-core', 'jquery-migrate');
+    // function defer_scripts($tag, $handle, $src){
+    //     //Dont defer jQuery or scripts taht depend on jQuery
+    //     $defer_excludes = array('jquery', 'jquery-core', 'jquery-migrate');
 
-        if(in_array($handle, $defer_excludes)){
-            return $tag;
-        }
+    //     if(in_array($handle, $defer_excludes)){
+    //         return $tag;
+    //     }
         
-        return str_replace(' src', 'defer src', $tag);
-    }
-    add_filter('script_loader_tag', 'defer_scripts', 10, 3);
+    //     return str_replace(' src', 'defer src', $tag);
+    // }
+    // add_filter('script_loader_tag', 'defer_scripts', 10, 3);
 
     /**
      * Move the scripts to the footer
      */
-    function move_scripts_to_footer(){
-        //Remove defauly jQuery
-        wp_deregister_script('jquery');
+    // function move_scripts_to_footer(){
+    //     //Remove defauly jQuery
+    //     wp_deregister_script('jquery');
 
-        //Re-register jQuery to footer
-        wp_register_script(
-            'jquery',
-            includes_url('/js/jquery/jquery.min.js'),
-            array(),
-            null,
-            true //Load in footer
-        );
+    //     //Re-register jQuery to footer
+    //     wp_register_script(
+    //         'jquery',
+    //         includes_url('/js/jquery/jquery.min.js'),
+    //         array(),
+    //         null,
+    //         true //Load in footer
+    //     );
 
-        wp_enqueue_script('jquery');
-    }
-    add_action('wp_enqueue_scripts', 'move_scripts_to_footer');
+    //     wp_enqueue_script('jquery');
+    // }
+    // add_action('wp_enqueue_scripts', 'move_scripts_to_footer');
 
-    function conditional_script_loading(){
+    // function conditional_script_loading(){
 
-        if(is_page('contact')){
-            wp_enqueue_script(
-                'contact-form',
-                get_stylesheet_directory_uri() . '/js/contact-form.js',
-                array('jquery'),
-                '1.0.0',
-                true
-            );
-        }
+    //     if(is_page('contact')){
+    //         wp_enqueue_script(
+    //             'contact-form',
+    //             get_stylesheet_directory_uri() . '/js/contact-form.js',
+    //             array('jquery'),
+    //             '1.0.0',
+    //             true
+    //         );
+    //     }
 
-        //Load slider script only
-        if(is_front_page()){
-            wp_enqueue_script(
-                'slider',
-                get_stylesheet_directory_uri() . '/js/slider.js',
-                array(''),
-                '1.0.0',
-                true
-            );
-        }
+    //     //Load slider script only
+    //     if(is_front_page()){
+    //         wp_enqueue_script(
+    //             'slider',
+    //             get_stylesheet_directory_uri() . '/js/slider.js',
+    //             array(''),
+    //             '1.0.0',
+    //             true
+    //         );
+    //     }
 
-        if(is_admin()){
+    //     if(is_admin()){
+    //         return;
+    //     }
+    // }
+    // add_action('wp_enqueue_scripts', 'conditional_script_loading');
+
+    /**
+    * Disable WooCommerce CSS/JS on non-shop pages
+     */
+    function disable_woocommerce_loading() {
+        // 1. First, check if WooCommerce is active. If not, stop.
+        if ( ! function_exists( 'is_woocommerce' ) ) {
             return;
         }
+
+        // 2. If we are on a WooCommerce page, stop (we want the scripts to load here).
+        if ( is_woocommerce() || is_cart() || is_checkout() || is_account_page() ) {
+            return;
+        }
+
+        // 3. If the other conditions are not met, we're on a non-WooCommerce page, so dequeue the assets.
+        wp_dequeue_style( 'woocommerce-general' );
+        wp_dequeue_style( 'woocommerce-layout' );
+        wp_dequeue_style( 'woocommerce-smallscreen' );
+        wp_dequeue_style( 'woocommerce_frontend_styles' );
+        wp_dequeue_style( 'woocommerce_fancybox_styles' );
+        wp_dequeue_style( 'woocommerce_chosen_styles' );
+
+        wp_dequeue_script( 'wc-cart-fragments' );
+        wp_dequeue_script( 'woocommerce' );
+        wp_dequeue_script( 'wc-add-to-cart' );
     }
-    add_action('wp_enqueue_scripts', 'conditional_script_loading');
+    add_action( 'wp_enqueue_scripts', 'disable_woocommerce_loading', 99 );
+
+    /**
+     * Disable cart fragments on non-shop pages
+     */
+    // function disable_cart_fragments() {
+    //     if ( is_front_page() || is_page() || is_single() ) {
+    //         wp_dequeue_script( 'wc-cart-fragments' );
+    //     }
+    // }
+    // add_action( 'wp_enqueue_scripts', 'disable_cart_fragments', 100 );
+
+    /**
+     * Disable cart fragment refresh on every page load
+     * This can greatly improve performance but may cause stale cart counts.
+     * Use with caution or a different cart implementation.
+     */
+    //add_filter( 'woocommerce_add_to_cart_fragments_refresh', '__return_false' );
+
+    /**
+     * Change cart session expiration time
+     * This isn't for fragment refresh but for the user's session.
+     */
+    function custom_cart_fragment_timeout( $timeout ) {
+        return DAY_IN_SECONDS; // Sets the session to 24 hours
+    }
+    add_filter( 'wc_session_expiration', 'custom_cart_fragment_timeout' );
+
+    /**
+     * Customize WooCommerce image sizes
+     */
+    function custom_woocommerce_image_dimensions() {
+        // Single product image
+        update_option( 'woocommerce_single_image_width', 800 );
+        // Thumbnail image
+        update_option( 'woocommerce_thumbnail_image_width', 300 );
+        // Crop images to exact size (1:1 aspect ratio)
+        update_option( 'woocommerce_thumbnail_cropping', '1:1' );
+    }
+    add_action( 'after_switch_theme', 'custom_woocommerce_image_dimensions' );
+
+    /**
+     * Disable zoom, lightbox, slider if not needed
+     */
+    function remove_woocommerce_product_features() {
+        remove_theme_support( 'wc-product-gallery-zoom' );
+        remove_theme_support( 'wc-product-gallery-lightbox' );
+        remove_theme_support( 'wc-product-gallery-slider' );
+    }
+    add_action( 'after_setup_theme', 'remove_woocommerce_product_features', 100 );
+
+    // /**
+    //  * Limit related products (reduces queries)
+    //  */
+    function limit_related_products( $args ) {
+        $args['posts_per_page'] = 3; // Instead of default 4
+        return $args;
+    }
+    add_filter( 'woocommerce_output_related_products_args', 'limit_related_products' );
+
+    /**
+     * Disable WooCommerce reviews if not used
+     */
+    add_filter( 'woocommerce_product_tabs', function( $tabs ) {
+        unset( $tabs['reviews'] );
+        return $tabs;
+    } );
+
+    // /**
+    //  * Remove unnecessary widgets
+    //  */
+    function remove_woocommerce_widgets() {
+        unregister_widget( 'WC_Widget_Cart' );
+        unregister_widget( 'WC_Widget_Layered_Nav_Filters' );
+        unregister_widget( 'WC_Widget_Layered_Nav' );
+        unregister_widget( 'WC_Widget_Price_Filter' );
+        unregister_widget( 'WC_Widget_Product_Categories' );
+        unregister_widget( 'WC_Widget_Product_Search' );
+        unregister_widget( 'WC_Widget_Product_Tag_Cloud' );
+        unregister_widget( 'WC_Widget_Products' );
+        unregister_widget( 'WC_Widget_Rating_Filter' );
+        unregister_widget( 'WC_Widget_Recent_Reviews' );
+        unregister_widget( 'WC_Widget_Recently_Viewed' );
+        unregister_widget( 'WC_Widget_Top_Rated_Products' );
+    }
+    add_action( 'widgets_init', 'remove_woocommerce_widgets', 99 );
+
+    /**
+     * Simplify checkout fields
+     */
+    function customize_checkout_fields( $fields ) {
+        // Remove unnecessary fields
+        unset( $fields['billing']['billing_company'] );
+        unset( $fields['billing']['billing_address_2'] );
+        unset( $fields['order']['order_comments'] );
+
+        // Make phone optional
+        $fields['billing']['billing_phone']['required'] = false;
+
+        return $fields;
+    }
+    add_filter( 'woocommerce_checkout_fields', 'customize_checkout_fields' );
+
+    /**
+     * Disable password strength meter
+     */
+    function disable_password_strength_meter() {
+        if ( wp_script_is( 'wc-password-strength-meter', 'enqueued' ) ) {
+            wp_dequeue_script( 'wc-password-strength-meter' );
+        }
+    }
+    add_action( 'wp_print_scripts', 'disable_password_strength_meter', 100 );
 ?>
