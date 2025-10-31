@@ -385,4 +385,40 @@
     add_filter('the_content', 'add_lazy_loading_to_iamges');
     add_filter('post_thumbnail_html', 'add_lazy_loading_to_iamges');
 
+    /**
+     * JavaScript defered loading.
+     */
+    function defer_scripts($tag, $handle, $src){
+        //Dont defer jQuery or scripts taht depend on jQuery
+        $defer_excludes = array('jquery', 'jquery-core', 'jquery-migrate');
+
+        if(in_array($handle, $defer_excludes)){
+            return $tag;
+        }
+        
+        return str_replace(' src', 'defer src', $tag);
+    }
+    add_filter('script_loader_tag', 'defer_scripts', 10, 3);
+
+    /**
+     * Move the scripts to the footer
+     */
+    function move_scripts_to_footer(){
+        //Remove defauly jQuery
+        wp_deregister_script('jquery');
+
+        //Re-register jQuery to footer
+        wp_register_script(
+            'jquery',
+            includes_url('/js/jquery/jquery.min.js'),
+            array(),
+            null,
+            true //Load in footer
+        );
+
+        wp_enqueue_script('jquery');
+    }
+    add_action('wp_enqueue_scripts', 'move_scripts_to_footer');
+
+
 ?>
