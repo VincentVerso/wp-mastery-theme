@@ -371,4 +371,18 @@
     add_image_size('portfolio-thumb', 600, 400, true);
     add_image_size('blog-featured', 1200, 600, true);
 
+    /**
+     * Lazy loading for all images
+     */
+    function add_lazy_loading_to_iamges($content) {
+        //Add loading="lazy" to all images
+        $content = preg_replace(
+            '/<img(.*?)>/i',
+            '<img$1 loading="lazy">', $content
+        );
+        return $content;
+    }
+    add_filter('the_content', 'add_lazy_loading_to_iamges');
+    add_filter('post_thumbnail_html', 'add_lazy_loading_to_iamges');
+
 ?>
