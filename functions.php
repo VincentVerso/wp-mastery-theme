@@ -247,13 +247,11 @@
     // }
 
     add_filter('body_class', 'my_comprehensive_body_classes');
-    
+
     function my_comprehensive_body_classes($classes) {
         global $post;
-
         // --- NON-POST DEPENDENT CLASSES ---
         // These will run on every page, even archives or 404 pages.
-
         // 1. Add user role or logged-out status
         if (is_user_logged_in()) {
             $current_user = wp_get_current_user();
@@ -274,7 +272,6 @@
         } else {
             $classes[] = 'time-evening';
         }
-
 
         // --- POST DEPENDENT CLASSES ---
         // If there's no valid post object, we stop here.
@@ -338,5 +335,16 @@
     }
     add_action('user_profile_update_errors', 'enforce_strong_passwords', 0, 3);
 
+    function trigger_backup_before_update($upgrader, $hook_extra){
+        //Trigger backup using UpdraftPlus
+        if(class_exists('UpdraftPlus_Options')){
+            $updraftplus_admin = new UpdraftPlus_Admin();
+            $updraftplus_admin->request_backupnow(array(
+                'files' => 1,
+                'db' => 1,
+            ));
+        }
+    }
+    add_action('upgrader_process_complete', 'trigger_backup_before_update', 10, 2);
 
 ?>
