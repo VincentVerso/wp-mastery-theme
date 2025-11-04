@@ -60,7 +60,7 @@ get_header();
                     <?php if ( has_post_thumbnail() ) : ?>
                         <?php the_post_thumbnail( 'large' ); ?>
                     <?php else : ?>
-                        <img src="https://via.placeholder.com/600x400" alt="Placeholder">
+                        <img src="https://via.placeholder.com/600x400" alt="">
                     <?php endif; ?>
                     <div class="portfolio-overlay">
                         <a href="<?php the_permalink(); ?>" class="portfolio-link">
