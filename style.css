@@ -271,6 +271,7 @@ body.mobile-device .desktop-only {
 .portfolio-content h2 {
     margin-top: 0;
     font-size: 1.4em;
+    margin-bottom: 15px;
 }
 
 .portfolio-client, .portfolio-year {
@@ -283,10 +284,11 @@ body.mobile-device .desktop-only {
     display: inline-block;
     background-color: #f0f0f0;
     color: #555;
-    padding: 4px 10px;
+    padding: 3px 12px;
     border-radius: 15px;
-    font-size: 0.8em;
+    font-size: 0.75em;
     margin: 5px 5px 10px 0;
+    font-weight: 500;
 }
 
 .featured-badge {
@@ -303,10 +305,24 @@ body.mobile-device .desktop-only {
 
 .external-link {
     display: inline-block;
-    margin-top: 15px;
+    margin-top: 20px;
     font-weight: bold;
     text-decoration: none;
     color: #0073aa;
+    font-size: 0.9em;
+}
+
+.portfolio-terms {
+    /* Adds a bit of space below the container */
+    margin-bottom: 10px; 
+}
+
+.portfolio-excerpt p {
+    /* Control the excerpt text size and line height */
+    font-size: 0.9em;
+    color: #555;
+    line-height: 1.6;
+    margin: 0; /* Remove default paragraph margin */
 }
 
 /* --- Pagination --- */
