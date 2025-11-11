@@ -26,3 +26,10 @@ jobs:
         password: ${{ secrets.FTP_PASSWORD }}
         local-dir: ./
         server-dir: /staging2.vincent-verso.com/public_html/wp-content/themes/astra-child/
+
+        # Exclude Git files and other non-theme folders
+        exclude: |
+          **/.git*
+          **/.github*
+          **/.gitignore
+          **/WordPress-Mastery*
