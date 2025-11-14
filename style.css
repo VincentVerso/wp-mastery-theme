@@ -343,3 +343,24 @@ body.mobile-device .desktop-only {
     color: #fff;
     border-color: #0073aa;
 }
+
+/* Defensive fix for portfolio grid */
+.portfolio-image {
+    /* This ensures the container never collapses to 0px height */
+    min-height: 200px; 
+    
+    /* This gives it a fallback color if no image loads */
+    background-color: #f0f0f0; 
+    
+    /* These will help center the alt text if the image breaks */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* This makes the alt text (like "Placeholder") look better */
+.portfolio-image img {
+    color: #666;
+    font-family: sans-serif;
+    font-size: 14px;
+}
