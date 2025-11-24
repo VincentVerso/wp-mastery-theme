@@ -585,4 +585,195 @@
     }
     add_action( 'wp_print_scripts', 'disable_password_strength_meter', 100 );
 
+/**
+ * -----------------------------------------------------------------------------
+ * PART 1: Custom "Direct Bank Transfer" Gateway
+ * -----------------------------------------------------------------------------
+ */
+
+// 1. Wrap the class creation in 'plugins_loaded' to ensure WooCommerce is active
+add_action( 'plugins_loaded', 'init_custom_bank_transfer_gateway' );
+
+function init_custom_bank_transfer_gateway() {
+
+    // Check if the base class exists to avoid errors
+    if ( ! class_exists( 'WC_Payment_Gateway' ) ) {
+        return;
+    }
+
+    /**
+     * The Custom Gateway Class
+     */
+    class WC_Custom_Direct_Bank_Transfer extends WC_Payment_Gateway {
+
+        // FIX: Explicitly declare the property to avoid "undefined property" errors
+        public $instructions;
+
+        /**
+         * Constructor: Sets up the gateway properties
+         */
+        public function __construct() {
+            $this->id                 = 'custom_bank_transfer'; // Unique ID for the gateway
+            $this->icon               = ''; // URL to an icon if you want one
+            $this->has_fields         = false; // False because we don't need credit card inputs
+            $this->method_title       = __( 'Custom Direct Bank Transfer', 'astra-child' );
+            $this->method_description = __( 'Allow customers to pay via direct bank transfer with custom instructions.', 'astra-child' );
+
+            // Load the settings
+            $this->init_form_fields();
+            $this->init_settings();
+
+            // Define user-facing variables
+            $this->title        = $this->get_option( 'title' );
+            $this->description  = $this->get_option( 'description' );
+            $this->instructions = $this->get_option( 'instructions' );
+
+            // Save settings hook (Standard WooCommerce requirement)
+            add_action( 'woocommerce_update_options_payment_gateways_' . $this->id, array( $this, 'process_admin_options' ) );
+
+            // Show instructions on the Thank You page
+            add_action( 'woocommerce_thankyou_' . $this->id, array( $this, 'thankyou_page' ) );
+
+            // Add instructions to emails
+            add_action( 'woocommerce_email_before_order_table', array( $this, 'email_instructions' ), 10, 3 );
+        }
+
+        /**
+         * Initialize Gateway Settings Form Fields (Admin View)
+         */
+        public function init_form_fields() {
+            $this->form_fields = array(
+                'enabled' => array(
+                    'title'   => __( 'Enable/Disable', 'astra-child' ),
+                    'type'    => 'checkbox',
+                    'label'   => __( 'Enable Custom Bank Transfer', 'astra-child' ),
+                    'default' => 'yes'
+                ),
+                'title' => array(
+                    'title'       => __( 'Title', 'astra-child' ),
+                    'type'        => 'text',
+                    'description' => __( 'This controls the title which the user sees during checkout.', 'astra-child' ),
+                    'default'     => __( 'Direct Bank Transfer', 'astra-child' ),
+                    'desc_tip'    => true,
+                ),
+                'description' => array(
+                    'title'       => __( 'Description', 'astra-child' ),
+                    'type'        => 'textarea',
+                    'description' => __( 'Payment method description that the customer will see on your checkout.', 'astra-child' ),
+                    'default'     => __( 'Make your payment directly into our bank account.', 'astra-child' ),
+                ),
+                'instructions' => array(
+                    'title'       => __( 'Instructions', 'astra-child' ),
+                    'type'        => 'textarea',
+                    'description' => __( 'Instructions that will be added to the thank you page and emails.', 'astra-child' ),
+                    'default'     => __( 'Please transfer the funds to IBAN: XY12 3456... using Order ID as reference.', 'astra-child' ),
+                ),
+            );
+        }
+
+        /**
+         * Process the payment and return the result
+         * This is the most important function!
+         */
+        public function process_payment( $order_id ) {
+            $order = wc_get_order( $order_id );
+
+            // 1. Mark as On Hold (since it's an offline payment, we wait for money)
+            $order->update_status( 'on-hold', __( 'Awaiting bank transfer payment', 'astra-child' ) );
+
+            // 2. Reduce stock levels
+            wc_reduce_stock_levels( $order_id );
+
+            // 3. Empty cart
+            WC()->cart->empty_cart();
+
+            // 4. Return success and redirect URL
+            return array(
+                'result'   => 'success',
+                'redirect' => $this->get_return_url( $order ),
+            );
+        }
+
+        /**
+         * Output for the Thank You page.
+         */
+        public function thankyou_page() {
+            if ( $this->instructions ) {
+                echo wpautop( wptexturize( $this->instructions ) );
+            }
+        }
+
+        /**
+         * Add content to the WC emails.
+         */
+        public function email_instructions( $order, $sent_to_admin, $plain_text = false ) {
+            if ( $this->instructions && ! $sent_to_admin && 'custom_bank_transfer' === $order->get_payment_method() ) {
+                echo wpautop( wptexturize( $this->instructions ) . PHP_EOL );
+            }
+        }
+    }
+}
+
+// 2. Register the Gateway with WooCommerce
+add_filter( 'woocommerce_payment_gateways', 'add_custom_bank_gateway_class' );
+function add_custom_bank_gateway_class( $gateways ) {
+    $gateways[] = 'WC_Custom_Direct_Bank_Transfer';
+    return $gateways;
+}
+
+
+/**
+ * -----------------------------------------------------------------------------
+ * PART 2: Surcharge for Credit Cards
+ * -----------------------------------------------------------------------------
+ * Note: Normally we add fees via the Cart API, not by creating a new gateway.
+ * This function checks the SELECTED payment method and adds a 2% fee.
+ */
+
+add_action( 'woocommerce_cart_calculate_fees', 'add_credit_card_surcharge' );
+
+function add_credit_card_surcharge( $cart ) {
+    if ( is_admin() && ! defined( 'DOING_AJAX' ) ) {
+        return;
+    }
+
+    // 1. Get the chosen payment method
+    // Note: 'stripe' or 'paypal' are common IDs for CC gateways.
+    // You can find the ID by inspecting the radio button on the checkout page.
+    $chosen_gateway = WC()->session->get( 'chosen_payment_method' );
+
+    // 2. Define which gateways trigger the fee (Example: 'stripe' or 'cod')
+    // For this example, we will target 'cod' (Cash on Delivery) or 'stripe' just as a test.
+    // REPLACE 'stripe' with the actual ID of the gateway you want to tax.
+    $target_gateways = array( 'stripe', 'ppcp-gateway' ); 
+
+    if ( in_array( $chosen_gateway, $target_gateways ) ) {
+        
+        // 3. Calculate the fee (2% of subtotal)
+        $surcharge_percentage = 0.02; 
+        $surcharge = $cart->subtotal * $surcharge_percentage;
+
+        // 4. Add the fee
+        // Arguments: Name, Amount, Taxable?, Tax Class
+        $cart->add_fee( 'Credit Card Surcharge (2%)', $surcharge, true, '' );
+    }
+}
+
+// 3. Refresh Checkout on Payment Method Change (Javascript)
+// Use the footer script to force WooCommerce to recalculate totals when payment method changes
+add_action( 'wp_footer', 'refresh_checkout_on_payment_change' );
+function refresh_checkout_on_payment_change() {
+    if ( is_checkout() && ! is_order_received_page() ) {
+        ?>
+        <script type="text/javascript">
+            jQuery( function($){
+                $('form.checkout').on( 'change', 'input[name="payment_method"]', function() {
+                    $(document.body).trigger('update_checkout');
+                });
+            });
+        </script>
+        <?php
+    }
+}
+
 ?>
